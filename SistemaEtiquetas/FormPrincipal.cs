@@ -14,6 +14,55 @@ namespace SistemaEtiquetas
         {
             InitializeComponent();
             template = new TemplateEtiqueta();
+            CarregarUltimoTemplate();
+        }
+
+        private void CarregarUltimoTemplate()
+        {
+            var ultimoTemplate = TemplateManager.CarregarUltimoTemplate();
+            if (ultimoTemplate != null)
+            {
+                template = ultimoTemplate;
+            }
+        }
+
+        private void btnSalvarTemplate_Click(object sender, EventArgs e)
+        {
+            if (template.Elementos.Count == 0)
+            {
+                MessageBox.Show("Crie um template no Designer primeiro!", "Atenção",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var formNome = new FormNomeTemplate();
+            if (formNome.ShowDialog() == DialogResult.OK)
+            {
+                string nomeTemplate = formNome.NomeTemplate;
+
+                if (TemplateManager.SalvarTemplate(template, nomeTemplate))
+                {
+                    MessageBox.Show($"Template '{nomeTemplate}' salvo com sucesso!\n\nLocal: {TemplateManager.ObterPastaTemplates()}",
+                        "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+
+        private void btnCarregarTemplate_Click(object sender, EventArgs e)
+        {
+            var formLista = new FormListaTemplates();
+            if (formLista.ShowDialog() == DialogResult.OK)
+            {
+                string nomeTemplate = formLista.TemplateSelecionado;
+
+                var templateCarregado = TemplateManager.CarregarTemplate(nomeTemplate);
+                if (templateCarregado != null)
+                {
+                    template = templateCarregado;
+                    MessageBox.Show($"Template '{nomeTemplate}' carregado com sucesso!",
+                        "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
         }
 
         private void btnDesigner_Click(object sender, EventArgs e)

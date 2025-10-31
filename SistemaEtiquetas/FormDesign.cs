@@ -37,6 +37,18 @@ namespace SistemaEtiquetas
             panelCanvas.MouseDown += PanelCanvas_MouseDown;
             panelCanvas.MouseMove += PanelCanvas_MouseMove;
             panelCanvas.MouseUp += PanelCanvas_MouseUp;
+
+            // Salvar automaticamente ao fechar com OK
+            this.FormClosing += FormDesigner_FormClosing;
+        }
+
+        private void FormDesigner_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (this.DialogResult == DialogResult.OK)
+            {
+                // Salvar como último template usado
+                TemplateManager.SalvarUltimoTemplate(template);
+            }
         }
 
         private void CarregarConfiguracoes()
@@ -351,7 +363,6 @@ namespace SistemaEtiquetas
             }
         }
 
-        // Métodos de desenho e mouse - continuam no próximo comentário
         private void PanelCanvas_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -408,9 +419,6 @@ namespace SistemaEtiquetas
                 }
             }
         }
-
-        // Continua na próxima parte...
-        // Continuação do FormDesigner.cs - adicione estes métodos na classe FormDesigner
 
         private void DesenharElemento(Graphics g, ElementoEtiqueta elem, Produto produto)
         {

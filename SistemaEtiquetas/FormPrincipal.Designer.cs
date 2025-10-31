@@ -7,6 +7,8 @@
         private System.Windows.Forms.Label lblTitulo;
         private System.Windows.Forms.Button btnDesigner;
         private System.Windows.Forms.Button btnImprimir;
+        private System.Windows.Forms.Button btnSalvarTemplate;
+        private System.Windows.Forms.Button btnCarregarTemplate;
         private System.Windows.Forms.GroupBox groupProduto;
         private System.Windows.Forms.Label lblNome;
         private System.Windows.Forms.TextBox txtNome;
@@ -40,6 +42,8 @@
             this.lblTitulo = new System.Windows.Forms.Label();
             this.btnDesigner = new System.Windows.Forms.Button();
             this.btnImprimir = new System.Windows.Forms.Button();
+            this.btnSalvarTemplate = new System.Windows.Forms.Button();
+            this.btnCarregarTemplate = new System.Windows.Forms.Button();
             this.groupProduto = new System.Windows.Forms.GroupBox();
             this.lblNome = new System.Windows.Forms.Label();
             this.txtNome = new System.Windows.Forms.TextBox();
@@ -66,6 +70,8 @@
             // panelTop
             // 
             this.panelTop.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(52)))), ((int)(((byte)(73)))), ((int)(((byte)(94)))));
+            this.panelTop.Controls.Add(this.btnCarregarTemplate);
+            this.panelTop.Controls.Add(this.btnSalvarTemplate);
             this.panelTop.Controls.Add(this.btnImprimir);
             this.panelTop.Controls.Add(this.btnDesigner);
             this.panelTop.Controls.Add(this.lblTitulo);
@@ -115,6 +121,36 @@
             this.btnImprimir.Text = "Imprimir Etiquetas";
             this.btnImprimir.UseVisualStyleBackColor = false;
             this.btnImprimir.Click += new System.EventHandler(this.btnImprimir_Click);
+            // 
+            // btnSalvarTemplate
+            // 
+            this.btnSalvarTemplate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(39)))), ((int)(((byte)(174)))), ((int)(((byte)(96)))));
+            this.btnSalvarTemplate.FlatAppearance.BorderSize = 0;
+            this.btnSalvarTemplate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSalvarTemplate.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnSalvarTemplate.ForeColor = System.Drawing.Color.White;
+            this.btnSalvarTemplate.Location = new System.Drawing.Point(370, 45);
+            this.btnSalvarTemplate.Name = "btnSalvarTemplate";
+            this.btnSalvarTemplate.Size = new System.Drawing.Size(140, 30);
+            this.btnSalvarTemplate.TabIndex = 3;
+            this.btnSalvarTemplate.Text = "💾 Salvar Template";
+            this.btnSalvarTemplate.UseVisualStyleBackColor = false;
+            this.btnSalvarTemplate.Click += new System.EventHandler(this.btnSalvarTemplate_Click);
+            // 
+            // btnCarregarTemplate
+            // 
+            this.btnCarregarTemplate.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(241)))), ((int)(((byte)(196)))), ((int)(((byte)(15)))));
+            this.btnCarregarTemplate.FlatAppearance.BorderSize = 0;
+            this.btnCarregarTemplate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnCarregarTemplate.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnCarregarTemplate.ForeColor = System.Drawing.Color.White;
+            this.btnCarregarTemplate.Location = new System.Drawing.Point(520, 45);
+            this.btnCarregarTemplate.Name = "btnCarregarTemplate";
+            this.btnCarregarTemplate.Size = new System.Drawing.Size(160, 30);
+            this.btnCarregarTemplate.TabIndex = 4;
+            this.btnCarregarTemplate.Text = "📂 Carregar Template";
+            this.btnCarregarTemplate.UseVisualStyleBackColor = false;
+            this.btnCarregarTemplate.Click += new System.EventHandler(this.btnCarregarTemplate_Click);
             // 
             // groupProduto
             // 
