@@ -10,18 +10,18 @@ namespace SistemaEtiquetas
     public partial class FormDesigner : Form
     {
         private TemplateEtiqueta template;
-        private Panel panelCanvas;
         private ElementoEtiqueta elementoSelecionado;
         private Point pontoInicial;
         private bool arrastando = false;
         private bool redimensionando = false;
         private string handleRedimensionamento = "";
-        private float escala = 4.0f; // pixels por mm
-        private ListBox lstElementos;
-        private Point offsetArrastar; // Offset do mouse em relação ao canto do elemento
+        private float escala = 4.0f;
+        private Point offsetArrastar;
 
         public FormDesigner(TemplateEtiqueta templateAtual)
         {
+            InitializeComponent();
+
             this.template = new TemplateEtiqueta
             {
                 Largura = templateAtual.Largura,
@@ -29,330 +29,62 @@ namespace SistemaEtiquetas
                 Elementos = new List<ElementoEtiqueta>(templateAtual.Elementos.Select(e => ClonarElemento(e)))
             };
 
-            InitializeComponent();
+            CarregarConfiguracoes();
             AtualizarListaElementos();
-        }
 
-        private void InitializeComponent()
-        {
-            this.Text = "Designer de Etiqueta";
-            this.Size = new Size(1200, 700);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.WindowState = FormWindowState.Maximized;
-
-            // Painel esquerdo - Ferramentas
-            Panel panelFerramentas = new Panel
-            {
-                Dock = DockStyle.Left,
-                Width = 250,
-                BackColor = Color.FromArgb(44, 62, 80),
-                Padding = new Padding(10)
-            };
-
-            Label lblFerramentas = new Label
-            {
-                Text = "FERRAMENTAS",
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 11, FontStyle.Bold),
-                Location = new Point(10, 10),
-                AutoSize = true
-            };
-
-            // Botões de adicionar elementos
-            Button btnTexto = CriarBotaoFerramenta("Adicionar Texto", 50);
-            btnTexto.Click += (s, e) => AdicionarElemento(TipoElemento.Texto);
-
-            Button btnCampoNome = CriarBotaoFerramenta("Campo: Nome", 90);
-            btnCampoNome.Click += (s, e) => AdicionarCampo("Nome");
-
-            Button btnCampoCodigo = CriarBotaoFerramenta("Campo: Código", 130);
-            btnCampoCodigo.Click += (s, e) => AdicionarCampo("Codigo");
-
-            Button btnCampoPreco = CriarBotaoFerramenta("Campo: Preço", 170);
-            btnCampoPreco.Click += (s, e) => AdicionarCampo("Preco");
-
-            Button btnCodigoBarras = CriarBotaoFerramenta("Código de Barras", 210);
-            btnCodigoBarras.Click += (s, e) => AdicionarElemento(TipoElemento.CodigoBarras);
-
-            Button btnImagem = CriarBotaoFerramenta("Adicionar Imagem", 250);
-            btnImagem.Click += (s, e) => AdicionarImagem();
-
-            Label lblTamanho = new Label
-            {
-                Text = "TAMANHO DA ETIQUETA",
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Location = new Point(10, 300),
-                AutoSize = true
-            };
-
-            Label lblLargura = new Label
-            {
-                Text = "Largura (mm):",
-                ForeColor = Color.White,
-                Location = new Point(10, 330),
-                AutoSize = true
-            };
-
-            NumericUpDown numLargura = new NumericUpDown
-            {
-                Name = "numLargura",
-                Location = new Point(120, 328),
-                Width = 100,
-                Minimum = 20,
-                Maximum = 300,
-                DecimalPlaces = 1,
-                Value = (decimal)template.Largura
-            };
-            numLargura.ValueChanged += (s, e) => AtualizarTamanhoCanvas();
-
-            Label lblAltura = new Label
-            {
-                Text = "Altura (mm):",
-                ForeColor = Color.White,
-                Location = new Point(10, 360),
-                AutoSize = true
-            };
-
-            NumericUpDown numAltura = new NumericUpDown
-            {
-                Name = "numAltura",
-                Location = new Point(120, 358),
-                Width = 100,
-                Minimum = 20,
-                Maximum = 300,
-                DecimalPlaces = 1,
-                Value = (decimal)template.Altura
-            };
-            numAltura.ValueChanged += (s, e) => AtualizarTamanhoCanvas();
-
-            Label lblElementos = new Label
-            {
-                Text = "ELEMENTOS",
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                Location = new Point(10, 400),
-                AutoSize = true
-            };
-
-            lstElementos = new ListBox
-            {
-                Name = "lstElementos",
-                Location = new Point(10, 430),
-                Size = new Size(220, 120),
-                BackColor = Color.White
-            };
-            lstElementos.SelectedIndexChanged += LstElementos_SelectedIndexChanged;
-
-            Button btnRemover = new Button
-            {
-                Text = "Remover Selecionado",
-                Location = new Point(10, 560),
-                Size = new Size(220, 30),
-                BackColor = Color.FromArgb(231, 76, 60),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnRemover.FlatAppearance.BorderSize = 0;
-            btnRemover.Click += BtnRemover_Click;
-
-            panelFerramentas.Controls.AddRange(new Control[] {
-                lblFerramentas, btnTexto, btnCampoNome, btnCampoCodigo, btnCampoPreco,
-                btnCodigoBarras, btnImagem, lblTamanho, lblLargura, numLargura,
-                lblAltura, numAltura, lblElementos, lstElementos, btnRemover
-            });
-
-            // Painel direito - Propriedades
-            Panel panelPropriedades = new Panel
-            {
-                Dock = DockStyle.Right,
-                Width = 250,
-                BackColor = Color.FromArgb(44, 62, 80),
-                Padding = new Padding(10)
-            };
-
-            Label lblPropriedades = new Label
-            {
-                Text = "PROPRIEDADES",
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 11, FontStyle.Bold),
-                Location = new Point(10, 10),
-                AutoSize = true
-            };
-
-            Label lblConteudo = new Label
-            {
-                Text = "Conteúdo:",
-                ForeColor = Color.White,
-                Location = new Point(10, 50),
-                AutoSize = true
-            };
-
-            TextBox txtConteudo = new TextBox
-            {
-                Name = "txtConteudo",
-                Location = new Point(10, 75),
-                Width = 220,
-                Enabled = false
-            };
-            txtConteudo.TextChanged += TxtConteudo_TextChanged;
-
-            Label lblFonte = new Label
-            {
-                Text = "Tamanho Fonte:",
-                ForeColor = Color.White,
-                Location = new Point(10, 110),
-                AutoSize = true
-            };
-
-            NumericUpDown numFonte = new NumericUpDown
-            {
-                Name = "numFonte",
-                Location = new Point(10, 135),
-                Width = 80,
-                Minimum = 6,
-                Maximum = 72,
-                Value = 10,
-                Enabled = false
-            };
-            numFonte.ValueChanged += NumFonte_ValueChanged;
-
-            CheckBox chkNegrito = new CheckBox
-            {
-                Name = "chkNegrito",
-                Text = "Negrito",
-                ForeColor = Color.White,
-                Location = new Point(10, 165),
-                AutoSize = true,
-                Enabled = false
-            };
-            chkNegrito.CheckedChanged += ChkNegrito_CheckedChanged;
-
-            CheckBox chkItalico = new CheckBox
-            {
-                Name = "chkItalico",
-                Text = "Itálico",
-                ForeColor = Color.White,
-                Location = new Point(120, 165),
-                AutoSize = true,
-                Enabled = false
-            };
-            chkItalico.CheckedChanged += ChkItalico_CheckedChanged;
-
-            Button btnCor = new Button
-            {
-                Name = "btnCor",
-                Text = "Escolher Cor",
-                Location = new Point(10, 195),
-                Size = new Size(220, 30),
-                BackColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Enabled = false
-            };
-            btnCor.Click += BtnCor_Click;
-
-            panelPropriedades.Controls.AddRange(new Control[] {
-                lblPropriedades, lblConteudo, txtConteudo, lblFonte, numFonte,
-                chkNegrito, chkItalico, btnCor
-            });
-
-            // Painel central - Canvas
-            Panel panelCentro = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(236, 240, 241),
-                AutoScroll = true
-            };
-
-            panelCanvas = new Panel
-            {
-                Name = "panelCanvas",
-                BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle,
-                Location = new Point(50, 50)
-            };
-
-            AtualizarTamanhoCanvas();
-
+            // Configurar eventos do canvas
             panelCanvas.Paint += PanelCanvas_Paint;
             panelCanvas.MouseDown += PanelCanvas_MouseDown;
             panelCanvas.MouseMove += PanelCanvas_MouseMove;
             panelCanvas.MouseUp += PanelCanvas_MouseUp;
-
-            panelCentro.Controls.Add(panelCanvas);
-
-            // Painel inferior - Botões
-            Panel panelBotoes = new Panel
-            {
-                Dock = DockStyle.Bottom,
-                Height = 60,
-                BackColor = Color.FromArgb(52, 73, 94)
-            };
-
-            Button btnSalvar = new Button
-            {
-                Text = "Salvar Template",
-                Location = new Point(panelBotoes.Width - 320, 15),
-                Size = new Size(140, 30),
-                BackColor = Color.FromArgb(46, 204, 113),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                DialogResult = DialogResult.OK
-            };
-            btnSalvar.FlatAppearance.BorderSize = 0;
-            btnSalvar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-
-            Button btnCancelar = new Button
-            {
-                Text = "Cancelar",
-                Location = new Point(panelBotoes.Width - 170, 15),
-                Size = new Size(140, 30),
-                BackColor = Color.FromArgb(149, 165, 166),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                DialogResult = DialogResult.Cancel
-            };
-            btnCancelar.FlatAppearance.BorderSize = 0;
-            btnCancelar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-
-            panelBotoes.Controls.AddRange(new Control[] { btnSalvar, btnCancelar });
-
-            this.Controls.AddRange(new Control[] { panelCentro, panelFerramentas, panelPropriedades, panelBotoes });
         }
 
-        private Button CriarBotaoFerramenta(string texto, int y)
+        private void CarregarConfiguracoes()
         {
-            var btn = new Button
-            {
-                Text = texto,
-                Location = new Point(10, y),
-                Size = new Size(220, 30),
-                BackColor = Color.FromArgb(52, 152, 219),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(10, 0, 0, 0)
-            };
-            btn.FlatAppearance.BorderSize = 0;
-            return btn;
+            numLargura.Value = (decimal)template.Largura;
+            numAltura.Value = (decimal)template.Altura;
+            AtualizarTamanhoCanvas();
         }
 
         private void AtualizarTamanhoCanvas()
         {
-            var controles = this.Controls.Find("numLargura", true);
-            if (controles.Length == 0) return;
-
-            var numLargura = controles[0] as NumericUpDown;
-            var numAltura = this.Controls.Find("numAltura", true)[0] as NumericUpDown;
+            if (numLargura == null || numAltura == null || panelCanvas == null) return;
 
             template.Largura = (float)numLargura.Value;
             template.Altura = (float)numAltura.Value;
 
-            if (panelCanvas != null)
-            {
-                panelCanvas.Size = new Size((int)(template.Largura * escala), (int)(template.Altura * escala));
-                panelCanvas.Invalidate();
-            }
+            panelCanvas.Size = new Size((int)(template.Largura * escala), (int)(template.Altura * escala));
+            panelCanvas.Invalidate();
+        }
+
+        private void btnTexto_Click(object sender, EventArgs e)
+        {
+            AdicionarElemento(TipoElemento.Texto);
+        }
+
+        private void btnCampoNome_Click(object sender, EventArgs e)
+        {
+            AdicionarCampo("Nome");
+        }
+
+        private void btnCampoCodigo_Click(object sender, EventArgs e)
+        {
+            AdicionarCampo("Codigo");
+        }
+
+        private void btnCampoPreco_Click(object sender, EventArgs e)
+        {
+            AdicionarCampo("Preco");
+        }
+
+        private void btnCodigoBarras_Click(object sender, EventArgs e)
+        {
+            AdicionarElemento(TipoElemento.CodigoBarras);
+        }
+
+        private void btnImagem_Click(object sender, EventArgs e)
+        {
+            AdicionarImagem();
         }
 
         private void AdicionarElemento(TipoElemento tipo)
@@ -367,7 +99,6 @@ namespace SistemaEtiquetas
             if (tipo == TipoElemento.Texto)
             {
                 elemento.Conteudo = "Texto";
-                // Calcular tamanho baseado no texto
                 using (Graphics g = panelCanvas.CreateGraphics())
                 {
                     SizeF tamanhoTexto = g.MeasureString(elemento.Conteudo, elemento.Fonte);
@@ -399,7 +130,6 @@ namespace SistemaEtiquetas
                 Cor = Color.Black
             };
 
-            // Calcular tamanho baseado no texto de exemplo
             string textoExemplo = "[" + campo + "]";
             using (Graphics g = panelCanvas.CreateGraphics())
             {
@@ -425,7 +155,7 @@ namespace SistemaEtiquetas
                     {
                         Tipo = TipoElemento.Imagem,
                         Imagem = Image.FromFile(ofd.FileName),
-                        Bounds = new Rectangle(10, 10, 80, 60),
+                        Bounds = new Rectangle(10, 10, 20, 15),
                         Conteudo = Path.GetFileName(ofd.FileName)
                     };
 
@@ -433,6 +163,27 @@ namespace SistemaEtiquetas
                     AtualizarListaElementos();
                     panelCanvas.Invalidate();
                 }
+            }
+        }
+
+        private void numLargura_ValueChanged(object sender, EventArgs e)
+        {
+            AtualizarTamanhoCanvas();
+        }
+
+        private void numAltura_ValueChanged(object sender, EventArgs e)
+        {
+            AtualizarTamanhoCanvas();
+        }
+
+        private void cmbPresets_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            switch (cmbPresets.SelectedIndex)
+            {
+                case 1: numLargura.Value = 50; numAltura.Value = 30; break;
+                case 2: numLargura.Value = 60; numAltura.Value = 40; break;
+                case 3: numLargura.Value = 70; numAltura.Value = 30; break;
+                case 4: numLargura.Value = 100; numAltura.Value = 50; break;
             }
         }
 
@@ -451,7 +202,7 @@ namespace SistemaEtiquetas
             }
         }
 
-        private void LstElementos_SelectedIndexChanged(object sender, EventArgs e)
+        private void lstElementos_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (lstElementos.SelectedIndex >= 0)
             {
@@ -464,12 +215,6 @@ namespace SistemaEtiquetas
         private void CarregarPropriedades()
         {
             if (elementoSelecionado == null) return;
-
-            var txtConteudo = this.Controls.Find("txtConteudo", true)[0] as TextBox;
-            var numFonte = this.Controls.Find("numFonte", true)[0] as NumericUpDown;
-            var chkNegrito = this.Controls.Find("chkNegrito", true)[0] as CheckBox;
-            var chkItalico = this.Controls.Find("chkItalico", true)[0] as CheckBox;
-            var btnCor = this.Controls.Find("btnCor", true)[0] as Button;
 
             bool podeEditar = elementoSelecionado.Tipo != TipoElemento.Imagem;
 
@@ -489,13 +234,12 @@ namespace SistemaEtiquetas
             btnCor.Enabled = podeEditar;
         }
 
-        private void TxtConteudo_TextChanged(object sender, EventArgs e)
+        private void txtConteudo_TextChanged(object sender, EventArgs e)
         {
             if (elementoSelecionado != null && elementoSelecionado.Tipo == TipoElemento.Texto)
             {
-                elementoSelecionado.Conteudo = ((TextBox)sender).Text;
+                elementoSelecionado.Conteudo = txtConteudo.Text;
 
-                // Ajustar tamanho do elemento automaticamente
                 using (Graphics g = panelCanvas.CreateGraphics())
                 {
                     SizeF tamanhoTexto = g.MeasureString(elementoSelecionado.Conteudo, elementoSelecionado.Fonte);
@@ -512,7 +256,7 @@ namespace SistemaEtiquetas
             }
         }
 
-        private void NumFonte_ValueChanged(object sender, EventArgs e)
+        private void numFonte_ValueChanged(object sender, EventArgs e)
         {
             if (elementoSelecionado != null)
             {
@@ -520,9 +264,8 @@ namespace SistemaEtiquetas
                 if (elementoSelecionado.Negrito) estilo |= FontStyle.Bold;
                 if (elementoSelecionado.Italico) estilo |= FontStyle.Italic;
 
-                elementoSelecionado.Fonte = new Font(elementoSelecionado.Fonte.FontFamily, (float)((NumericUpDown)sender).Value, estilo);
+                elementoSelecionado.Fonte = new Font(elementoSelecionado.Fonte.FontFamily, (float)numFonte.Value, estilo);
 
-                // Ajustar tamanho do elemento automaticamente
                 if (elementoSelecionado.Tipo == TipoElemento.Texto || elementoSelecionado.Tipo == TipoElemento.Campo)
                 {
                     using (Graphics g = panelCanvas.CreateGraphics())
@@ -546,20 +289,20 @@ namespace SistemaEtiquetas
             }
         }
 
-        private void ChkNegrito_CheckedChanged(object sender, EventArgs e)
+        private void chkNegrito_CheckedChanged(object sender, EventArgs e)
         {
             if (elementoSelecionado != null)
             {
-                elementoSelecionado.Negrito = ((CheckBox)sender).Checked;
+                elementoSelecionado.Negrito = chkNegrito.Checked;
                 AtualizarFonte();
             }
         }
 
-        private void ChkItalico_CheckedChanged(object sender, EventArgs e)
+        private void chkItalico_CheckedChanged(object sender, EventArgs e)
         {
             if (elementoSelecionado != null)
             {
-                elementoSelecionado.Italico = ((CheckBox)sender).Checked;
+                elementoSelecionado.Italico = chkItalico.Checked;
                 AtualizarFonte();
             }
         }
@@ -576,7 +319,7 @@ namespace SistemaEtiquetas
             panelCanvas.Invalidate();
         }
 
-        private void BtnCor_Click(object sender, EventArgs e)
+        private void btnCor_Click(object sender, EventArgs e)
         {
             if (elementoSelecionado != null)
             {
@@ -586,36 +329,39 @@ namespace SistemaEtiquetas
                     if (cd.ShowDialog() == DialogResult.OK)
                     {
                         elementoSelecionado.Cor = cd.Color;
-                        ((Button)sender).BackColor = cd.Color;
+                        btnCor.BackColor = cd.Color;
                         panelCanvas.Invalidate();
                     }
                 }
             }
         }
 
-        private void BtnRemover_Click(object sender, EventArgs e)
+        private void btnRemover_Click(object sender, EventArgs e)
         {
             if (lstElementos.SelectedIndex >= 0)
             {
-                template.Elementos.RemoveAt(lstElementos.SelectedIndex);
-                elementoSelecionado = null;
-                AtualizarListaElementos();
-                panelCanvas.Invalidate();
+                if (MessageBox.Show("Deseja remover este elemento?", "Confirmar",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    template.Elementos.RemoveAt(lstElementos.SelectedIndex);
+                    elementoSelecionado = null;
+                    AtualizarListaElementos();
+                    panelCanvas.Invalidate();
+                }
             }
         }
 
+        // Métodos de desenho e mouse - continuam no próximo comentário
         private void PanelCanvas_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-            // Desenhar borda da etiqueta
             using (Pen penBorda = new Pen(Color.FromArgb(41, 128, 185), 3))
             {
                 g.DrawRectangle(penBorda, 0, 0, panelCanvas.Width - 1, panelCanvas.Height - 1);
             }
 
-            // Desenhar grid
             using (Pen penGrid = new Pen(Color.FromArgb(220, 220, 220)))
             {
                 for (int i = 0; i <= template.Largura; i += 5)
@@ -630,7 +376,6 @@ namespace SistemaEtiquetas
                 }
             }
 
-            // Texto de ajuda quando vazio
             if (template.Elementos.Count == 0)
             {
                 using (Font font = new Font("Segoe UI", 10, FontStyle.Italic))
@@ -646,12 +391,10 @@ namespace SistemaEtiquetas
                 }
             }
 
-            // Desenhar elementos
             foreach (var elem in template.Elementos)
             {
                 DesenharElemento(g, elem, null);
 
-                // Destacar elemento selecionado
                 if (elem == elementoSelecionado)
                 {
                     Rectangle bounds = ConverterParaPixels(elem.Bounds);
@@ -661,11 +404,13 @@ namespace SistemaEtiquetas
                         g.DrawRectangle(penSelecao, bounds);
                     }
 
-                    // Handles de redimensionamento
                     DesenharHandles(g, bounds);
                 }
             }
         }
+
+        // Continua na próxima parte...
+        // Continuação do FormDesigner.cs - adicione estes métodos na classe FormDesigner
 
         private void DesenharElemento(Graphics g, ElementoEtiqueta elem, Produto produto)
         {
@@ -708,7 +453,6 @@ namespace SistemaEtiquetas
                     break;
             }
 
-            // Borda do elemento
             g.DrawRectangle(Pens.LightGray, bounds);
         }
 
@@ -754,17 +498,14 @@ namespace SistemaEtiquetas
 
         private void DesenharHandles(Graphics g, Rectangle bounds)
         {
-            int tamanhoHandle = 10; // Aumentado para facilitar
+            int tamanhoHandle = 10;
             using (SolidBrush brush = new SolidBrush(Color.White))
             using (Pen pen = new Pen(Color.Blue, 2))
             {
-                // Cantos
                 DesenharHandle(g, brush, pen, bounds.Left, bounds.Top, tamanhoHandle);
                 DesenharHandle(g, brush, pen, bounds.Right, bounds.Top, tamanhoHandle);
                 DesenharHandle(g, brush, pen, bounds.Left, bounds.Bottom, tamanhoHandle);
                 DesenharHandle(g, brush, pen, bounds.Right, bounds.Bottom, tamanhoHandle);
-
-                // Meio das bordas
                 DesenharHandle(g, brush, pen, bounds.Left + bounds.Width / 2, bounds.Top, tamanhoHandle);
                 DesenharHandle(g, brush, pen, bounds.Left + bounds.Width / 2, bounds.Bottom, tamanhoHandle);
                 DesenharHandle(g, brush, pen, bounds.Left, bounds.Top + bounds.Height / 2, tamanhoHandle);
@@ -782,13 +523,11 @@ namespace SistemaEtiquetas
         {
             pontoInicial = e.Location;
 
-            // Verificar se clicou em algum elemento
             for (int i = template.Elementos.Count - 1; i >= 0; i--)
             {
                 var elem = template.Elementos[i];
                 Rectangle bounds = ConverterParaPixels(elem.Bounds);
 
-                // Verificar handles de redimensionamento primeiro
                 string handle = ObterHandle(bounds, e.Location);
                 if (handle != null && elem == elementoSelecionado)
                 {
@@ -798,14 +537,12 @@ namespace SistemaEtiquetas
                     return;
                 }
 
-                // Verificar clique no elemento
                 if (bounds.Contains(e.Location))
                 {
                     elementoSelecionado = elem;
                     lstElementos.SelectedIndex = i;
                     arrastando = true;
 
-                    // Calcular offset para arrastar de onde clicou
                     offsetArrastar = new Point(e.X - bounds.X, e.Y - bounds.Y);
 
                     panelCanvas.Cursor = Cursors.SizeAll;
@@ -830,16 +567,13 @@ namespace SistemaEtiquetas
 
             if (arrastando)
             {
-                // Calcula a nova posição em pixels considerando o offset
                 int novoX = e.X - offsetArrastar.X;
                 int novoY = e.Y - offsetArrastar.Y;
 
-                // Converte para milímetros
                 var bounds = elementoSelecionado.Bounds;
                 bounds.X = (int)(novoX / escala);
                 bounds.Y = (int)(novoY / escala);
 
-                // Limitar RIGIDAMENTE aos limites do canvas
                 bounds.X = Math.Max(0, Math.Min(bounds.X, (int)template.Largura - bounds.Width));
                 bounds.Y = Math.Max(0, Math.Min(bounds.Y, (int)template.Altura - bounds.Height));
 
@@ -850,11 +584,9 @@ namespace SistemaEtiquetas
             {
                 var bounds = elementoSelecionado.Bounds;
 
-                // Posição atual do mouse em mm
                 int mouseXmm = (int)(e.X / escala);
                 int mouseYmm = (int)(e.Y / escala);
 
-                // Limitar mouse aos limites do canvas
                 mouseXmm = Math.Max(0, Math.Min(mouseXmm, (int)template.Largura));
                 mouseYmm = Math.Max(0, Math.Min(mouseYmm, (int)template.Altura));
 
@@ -866,57 +598,41 @@ namespace SistemaEtiquetas
                 switch (handleRedimensionamento)
                 {
                     case "TopLeft":
-                        // Move o canto superior esquerdo
                         novoX = mouseXmm;
                         novoY = mouseYmm;
                         novaLargura = (bounds.X + bounds.Width) - mouseXmm;
                         novaAltura = (bounds.Y + bounds.Height) - mouseYmm;
                         break;
-
                     case "TopRight":
-                        // Move o canto superior direito
                         novoY = mouseYmm;
                         novaLargura = mouseXmm - bounds.X;
                         novaAltura = (bounds.Y + bounds.Height) - mouseYmm;
                         break;
-
                     case "BottomLeft":
-                        // Move o canto inferior esquerdo
                         novoX = mouseXmm;
                         novaLargura = (bounds.X + bounds.Width) - mouseXmm;
                         novaAltura = mouseYmm - bounds.Y;
                         break;
-
                     case "BottomRight":
-                        // Move o canto inferior direito
                         novaLargura = mouseXmm - bounds.X;
                         novaAltura = mouseYmm - bounds.Y;
                         break;
-
                     case "Top":
-                        // Move só o topo
                         novoY = mouseYmm;
                         novaAltura = (bounds.Y + bounds.Height) - mouseYmm;
                         break;
-
                     case "Bottom":
-                        // Move só a base
                         novaAltura = mouseYmm - bounds.Y;
                         break;
-
                     case "Left":
-                        // Move só a esquerda
                         novoX = mouseXmm;
                         novaLargura = (bounds.X + bounds.Width) - mouseXmm;
                         break;
-
                     case "Right":
-                        // Move só a direita
                         novaLargura = mouseXmm - bounds.X;
                         break;
                 }
 
-                // Tamanho mínimo
                 if (novaLargura < 5)
                 {
                     if (handleRedimensionamento.Contains("Left"))
@@ -935,7 +651,6 @@ namespace SistemaEtiquetas
                     novaAltura = 3;
                 }
 
-                // Limites do canvas
                 if (novoX < 0)
                 {
                     novaLargura += novoX;
@@ -955,13 +670,11 @@ namespace SistemaEtiquetas
                     novaAltura = (int)template.Altura - novoY;
                 }
 
-                // Aplicar novos valores
                 elementoSelecionado.Bounds = new Rectangle(novoX, novoY, novaLargura, novaAltura);
                 panelCanvas.Invalidate();
             }
             else
             {
-                // Mudar cursor nos handles
                 Rectangle bounds = ConverterParaPixels(elementoSelecionado.Bounds);
                 string handle = ObterHandle(bounds, e.Location);
 
@@ -1004,7 +717,6 @@ namespace SistemaEtiquetas
             redimensionando = false;
             handleRedimensionamento = "";
 
-            // Resetar cursor
             if (elementoSelecionado != null)
             {
                 Rectangle bounds = ConverterParaPixels(elementoSelecionado.Bounds);
@@ -1012,7 +724,6 @@ namespace SistemaEtiquetas
 
                 if (handle != null)
                 {
-                    // Manter cursor de redimensionamento
                 }
                 else if (bounds.Contains(e.Location))
                 {
@@ -1031,9 +742,8 @@ namespace SistemaEtiquetas
 
         private string ObterHandle(Rectangle bounds, Point ponto)
         {
-            int margem = 12; // Aumentado para facilitar o clique
+            int margem = 12;
 
-            // Cantos (prioridade maior)
             if (Math.Abs(ponto.X - bounds.Left) <= margem && Math.Abs(ponto.Y - bounds.Top) <= margem)
                 return "TopLeft";
             if (Math.Abs(ponto.X - bounds.Right) <= margem && Math.Abs(ponto.Y - bounds.Top) <= margem)
@@ -1043,7 +753,6 @@ namespace SistemaEtiquetas
             if (Math.Abs(ponto.X - bounds.Right) <= margem && Math.Abs(ponto.Y - bounds.Bottom) <= margem)
                 return "BottomRight";
 
-            // Meio das bordas
             if (Math.Abs(ponto.X - (bounds.Left + bounds.Width / 2)) <= margem && Math.Abs(ponto.Y - bounds.Top) <= margem)
                 return "Top";
             if (Math.Abs(ponto.X - (bounds.Left + bounds.Width / 2)) <= margem && Math.Abs(ponto.Y - bounds.Bottom) <= margem)

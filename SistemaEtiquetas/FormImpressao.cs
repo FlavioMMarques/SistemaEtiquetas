@@ -10,133 +10,23 @@ namespace SistemaEtiquetas
     {
         private List<Produto> produtos;
         private TemplateEtiqueta template;
-        private Panel panelVisualizacao;
         private int paginaAtual = 0;
         private List<List<Produto>> produtosPorPagina;
+        private int paginaImpressaoAtual = 0;
 
         public FormImpressao(List<Produto> produtos, TemplateEtiqueta template)
         {
+            InitializeComponent();
             this.produtos = produtos;
             this.template = template;
-            InitializeComponent();
             CalcularPaginacao();
             DesenharVisualizacao();
-        }
-
-        private void InitializeComponent()
-        {
-            this.Text = "Visualização de Impressão";
-            this.Size = new Size(900, 700);
-            this.StartPosition = FormStartPosition.CenterScreen;
-
-            Panel panelTopo = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 60,
-                BackColor = Color.FromArgb(52, 73, 94)
-            };
-
-            Label lblTitulo = new Label
-            {
-                Text = "VISUALIZAÇÃO DAS ETIQUETAS",
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                Location = new Point(20, 15),
-                AutoSize = true
-            };
-
-            Label lblInfo = new Label
-            {
-                Name = "lblInfo",
-                Text = "Página 1 de 1",
-                ForeColor = Color.White,
-                Font = new Font("Segoe UI", 10),
-                Location = new Point(panelTopo.Width - 150, 20),
-                AutoSize = true
-            };
-            lblInfo.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-
-            panelTopo.Controls.AddRange(new Control[] { lblTitulo, lblInfo });
-
-            panelVisualizacao = new Panel
-            {
-                Dock = DockStyle.Fill,
-                AutoScroll = true,
-                BackColor = Color.FromArgb(236, 240, 241),
-                Padding = new Padding(20)
-            };
-
-            Panel panelBotoes = new Panel
-            {
-                Dock = DockStyle.Bottom,
-                Height = 70,
-                BackColor = Color.FromArgb(44, 62, 80)
-            };
-
-            Button btnAnterior = new Button
-            {
-                Name = "btnAnterior",
-                Text = "← Anterior",
-                Location = new Point(20, 20),
-                Size = new Size(120, 35),
-                BackColor = Color.FromArgb(149, 165, 166),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Enabled = false
-            };
-            btnAnterior.FlatAppearance.BorderSize = 0;
-            btnAnterior.Click += (s, e) => MudarPagina(-1);
-
-            Button btnProxima = new Button
-            {
-                Name = "btnProxima",
-                Text = "Próxima →",
-                Location = new Point(150, 20),
-                Size = new Size(120, 35),
-                BackColor = Color.FromArgb(149, 165, 166),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnProxima.FlatAppearance.BorderSize = 0;
-            btnProxima.Click += (s, e) => MudarPagina(1);
-
-            Button btnImprimir = new Button
-            {
-                Text = "Imprimir Todas",
-                Location = new Point(panelBotoes.Width - 280, 20),
-                Size = new Size(130, 35),
-                BackColor = Color.FromArgb(46, 204, 113),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold)
-            };
-            btnImprimir.FlatAppearance.BorderSize = 0;
-            btnImprimir.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnImprimir.Click += BtnImprimir_Click;
-
-            Button btnFechar = new Button
-            {
-                Text = "Fechar",
-                Location = new Point(panelBotoes.Width - 140, 20),
-                Size = new Size(120, 35),
-                BackColor = Color.FromArgb(231, 76, 60),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
-            btnFechar.FlatAppearance.BorderSize = 0;
-            btnFechar.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnFechar.Click += (s, e) => this.Close();
-
-            panelBotoes.Controls.AddRange(new Control[] { btnAnterior, btnProxima, btnImprimir, btnFechar });
-
-            this.Controls.AddRange(new Control[] { panelVisualizacao, panelTopo, panelBotoes });
         }
 
         private void CalcularPaginacao()
         {
             produtosPorPagina = new List<List<Produto>>();
 
-            // Calcular quantas etiquetas cabem em uma página A4 (210x297mm)
             float larguraA4 = 210;
             float alturaA4 = 297;
             float margem = 10;
@@ -166,6 +56,21 @@ namespace SistemaEtiquetas
             }
         }
 
+        private void btnAnterior_Click(object sender, EventArgs e)
+        {
+            MudarPagina(-1);
+        }
+
+        private void btnProxima_Click(object sender, EventArgs e)
+        {
+            MudarPagina(1);
+        }
+
+        private void btnFechar_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
         private void MudarPagina(int direcao)
         {
             paginaAtual += direcao;
@@ -177,10 +82,6 @@ namespace SistemaEtiquetas
 
         private void AtualizarBotoes()
         {
-            var btnAnterior = this.Controls.Find("btnAnterior", true)[0] as Button;
-            var btnProxima = this.Controls.Find("btnProxima", true)[0] as Button;
-            var lblInfo = this.Controls.Find("lblInfo", true)[0] as Label;
-
             btnAnterior.Enabled = paginaAtual > 0;
             btnProxima.Enabled = paginaAtual < produtosPorPagina.Count - 1;
             lblInfo.Text = $"Página {paginaAtual + 1} de {produtosPorPagina.Count}";
@@ -190,7 +91,6 @@ namespace SistemaEtiquetas
         {
             panelVisualizacao.Controls.Clear();
 
-            // Simular página A4
             float escala = 2.8f;
             int larguraPagina = (int)(210 * escala);
             int alturaPagina = (int)(297 * escala);
@@ -243,10 +143,8 @@ namespace SistemaEtiquetas
 
         private void DesenharEtiqueta(Graphics g, Produto produto, float x, float y, float largura, float altura, float escala)
         {
-            // Borda da etiqueta
             g.DrawRectangle(new Pen(Color.LightGray, 1), x, y, largura, altura);
 
-            // Desenhar cada elemento do template
             foreach (var elem in template.Elementos)
             {
                 DesenharElemento(g, elem, produto, x, y, escala);
@@ -331,10 +229,10 @@ namespace SistemaEtiquetas
             }
         }
 
-        private void BtnImprimir_Click(object sender, EventArgs e)
+        private void btnImprimir_Click(object sender, EventArgs e)
         {
             PrintDocument pd = new PrintDocument();
-            pd.DefaultPageSettings.PaperSize = new PaperSize("A4", 827, 1169); // A4 em centésimos de polegada
+            pd.DefaultPageSettings.PaperSize = new PaperSize("A4", 827, 1169);
             pd.PrintPage += ImprimirPagina;
 
             PrintDialog printDialog = new PrintDialog();
@@ -354,8 +252,6 @@ namespace SistemaEtiquetas
             }
         }
 
-        private int paginaImpressaoAtual = 0;
-
         private void ImprimirPagina(object sender, PrintPageEventArgs e)
         {
             if (paginaImpressaoAtual >= produtosPorPagina.Count)
@@ -366,9 +262,8 @@ namespace SistemaEtiquetas
             }
 
             Graphics g = e.Graphics;
-            float escala = g.DpiX / 25.4f; // Converter mm para pixels
+            float escala = g.DpiX / 25.4f;
 
-            float margem = 10 * escala;
             float xPos = e.MarginBounds.Left;
             float yPos = e.MarginBounds.Top;
             float larguraEtiqueta = template.Largura * escala;
