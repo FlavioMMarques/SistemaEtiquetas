@@ -360,7 +360,6 @@ namespace SistemaEtiquetas
             var elemento = new ElementoEtiqueta
             {
                 Tipo = tipo,
-                Bounds = new Rectangle(10, 10, 100, 30),
                 Fonte = new Font("Arial", 10),
                 Cor = Color.Black
             };
@@ -368,11 +367,21 @@ namespace SistemaEtiquetas
             if (tipo == TipoElemento.Texto)
             {
                 elemento.Conteudo = "Texto";
+                // Calcular tamanho baseado no texto
+                using (Graphics g = panelCanvas.CreateGraphics())
+                {
+                    SizeF tamanhoTexto = g.MeasureString(elemento.Conteudo, elemento.Fonte);
+                    int largura = Math.Min((int)(tamanhoTexto.Width / escala) + 2, (int)template.Largura - 10);
+                    int altura = Math.Min((int)(tamanhoTexto.Height / escala) + 2, (int)template.Altura - 10);
+                    elemento.Bounds = new Rectangle(5, 5, largura, altura);
+                }
             }
             else if (tipo == TipoElemento.CodigoBarras)
             {
                 elemento.Conteudo = "Codigo";
-                elemento.Bounds = new Rectangle(10, 10, 150, 40);
+                int largura = Math.Min(40, (int)template.Largura - 10);
+                int altura = Math.Min(15, (int)template.Altura - 10);
+                elemento.Bounds = new Rectangle(5, 5, largura, altura);
             }
 
             template.Elementos.Add(elemento);
@@ -386,10 +395,19 @@ namespace SistemaEtiquetas
             {
                 Tipo = TipoElemento.Campo,
                 Conteudo = campo,
-                Bounds = new Rectangle(10, 10, 120, 25),
                 Fonte = new Font("Arial", 10),
                 Cor = Color.Black
             };
+
+            // Calcular tamanho baseado no texto de exemplo
+            string textoExemplo = "[" + campo + "]";
+            using (Graphics g = panelCanvas.CreateGraphics())
+            {
+                SizeF tamanhoTexto = g.MeasureString(textoExemplo, elemento.Fonte);
+                int largura = Math.Min((int)(tamanhoTexto.Width / escala) + 2, (int)template.Largura - 10);
+                int altura = Math.Min((int)(tamanhoTexto.Height / escala) + 2, (int)template.Altura - 10);
+                elemento.Bounds = new Rectangle(5, 5, largura, altura);
+            }
 
             template.Elementos.Add(elemento);
             AtualizarListaElementos();
@@ -476,6 +494,20 @@ namespace SistemaEtiquetas
             if (elementoSelecionado != null && elementoSelecionado.Tipo == TipoElemento.Texto)
             {
                 elementoSelecionado.Conteudo = ((TextBox)sender).Text;
+
+                // Ajustar tamanho do elemento automaticamente
+                using (Graphics g = panelCanvas.CreateGraphics())
+                {
+                    SizeF tamanhoTexto = g.MeasureString(elementoSelecionado.Conteudo, elementoSelecionado.Fonte);
+                    int novaLargura = Math.Min((int)(tamanhoTexto.Width / escala) + 2, (int)template.Largura - elementoSelecionado.Bounds.X);
+                    int novaAltura = Math.Min((int)(tamanhoTexto.Height / escala) + 2, (int)template.Altura - elementoSelecionado.Bounds.Y);
+
+                    var bounds = elementoSelecionado.Bounds;
+                    bounds.Width = Math.Max(5, novaLargura);
+                    bounds.Height = Math.Max(3, novaAltura);
+                    elementoSelecionado.Bounds = bounds;
+                }
+
                 panelCanvas.Invalidate();
             }
         }
@@ -489,6 +521,27 @@ namespace SistemaEtiquetas
                 if (elementoSelecionado.Italico) estilo |= FontStyle.Italic;
 
                 elementoSelecionado.Fonte = new Font(elementoSelecionado.Fonte.FontFamily, (float)((NumericUpDown)sender).Value, estilo);
+
+                // Ajustar tamanho do elemento automaticamente
+                if (elementoSelecionado.Tipo == TipoElemento.Texto || elementoSelecionado.Tipo == TipoElemento.Campo)
+                {
+                    using (Graphics g = panelCanvas.CreateGraphics())
+                    {
+                        string texto = elementoSelecionado.Tipo == TipoElemento.Texto ?
+                            elementoSelecionado.Conteudo :
+                            "[" + elementoSelecionado.Conteudo + "]";
+
+                        SizeF tamanhoTexto = g.MeasureString(texto, elementoSelecionado.Fonte);
+                        int novaLargura = Math.Min((int)(tamanhoTexto.Width / escala) + 2, (int)template.Largura - elementoSelecionado.Bounds.X);
+                        int novaAltura = Math.Min((int)(tamanhoTexto.Height / escala) + 2, (int)template.Altura - elementoSelecionado.Bounds.Y);
+
+                        var bounds = elementoSelecionado.Bounds;
+                        bounds.Width = Math.Max(5, novaLargura);
+                        bounds.Height = Math.Max(3, novaAltura);
+                        elementoSelecionado.Bounds = bounds;
+                    }
+                }
+
                 panelCanvas.Invalidate();
             }
         }
@@ -556,6 +609,12 @@ namespace SistemaEtiquetas
             Graphics g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
+            // Desenhar borda da etiqueta
+            using (Pen penBorda = new Pen(Color.FromArgb(41, 128, 185), 3))
+            {
+                g.DrawRectangle(penBorda, 0, 0, panelCanvas.Width - 1, panelCanvas.Height - 1);
+            }
+
             // Desenhar grid
             using (Pen penGrid = new Pen(Color.FromArgb(220, 220, 220)))
             {
@@ -568,6 +627,22 @@ namespace SistemaEtiquetas
                 {
                     int y = (int)(i * escala);
                     g.DrawLine(penGrid, 0, y, panelCanvas.Width, y);
+                }
+            }
+
+            // Texto de ajuda quando vazio
+            if (template.Elementos.Count == 0)
+            {
+                using (Font font = new Font("Segoe UI", 10, FontStyle.Italic))
+                using (SolidBrush brush = new SolidBrush(Color.Gray))
+                {
+                    StringFormat sf = new StringFormat
+                    {
+                        Alignment = StringAlignment.Center,
+                        LineAlignment = StringAlignment.Center
+                    };
+                    g.DrawString("Clique nos botões à esquerda para adicionar elementos",
+                        font, brush, new RectangleF(0, 0, panelCanvas.Width, panelCanvas.Height), sf);
                 }
             }
 
@@ -764,9 +839,9 @@ namespace SistemaEtiquetas
                 bounds.X = (int)(novoX / escala);
                 bounds.Y = (int)(novoY / escala);
 
-                // Limitar aos limites do canvas (com margem negativa permitida)
-                bounds.X = Math.Max(-5, Math.Min(bounds.X, (int)template.Largura - 5));
-                bounds.Y = Math.Max(-5, Math.Min(bounds.Y, (int)template.Altura - 5));
+                // Limitar RIGIDAMENTE aos limites do canvas
+                bounds.X = Math.Max(0, Math.Min(bounds.X, (int)template.Largura - bounds.Width));
+                bounds.Y = Math.Max(0, Math.Min(bounds.Y, (int)template.Altura - bounds.Height));
 
                 elementoSelecionado.Bounds = bounds;
                 panelCanvas.Invalidate();
@@ -774,60 +849,114 @@ namespace SistemaEtiquetas
             else if (redimensionando)
             {
                 var bounds = elementoSelecionado.Bounds;
-                Rectangle boundsPixels = ConverterParaPixels(bounds);
 
-                int deltaX = e.X - pontoInicial.X;
-                int deltaY = e.Y - pontoInicial.Y;
+                // Posição atual do mouse em mm
+                int mouseXmm = (int)(e.X / escala);
+                int mouseYmm = (int)(e.Y / escala);
+
+                // Limitar mouse aos limites do canvas
+                mouseXmm = Math.Max(0, Math.Min(mouseXmm, (int)template.Largura));
+                mouseYmm = Math.Max(0, Math.Min(mouseYmm, (int)template.Altura));
+
+                int novoX = bounds.X;
+                int novoY = bounds.Y;
+                int novaLargura = bounds.Width;
+                int novaAltura = bounds.Height;
 
                 switch (handleRedimensionamento)
                 {
                     case "TopLeft":
-                        bounds.X = (int)((boundsPixels.X + deltaX) / escala);
-                        bounds.Y = (int)((boundsPixels.Y + deltaY) / escala);
-                        bounds.Width = (int)((boundsPixels.Width - deltaX) / escala);
-                        bounds.Height = (int)((boundsPixels.Height - deltaY) / escala);
+                        // Move o canto superior esquerdo
+                        novoX = mouseXmm;
+                        novoY = mouseYmm;
+                        novaLargura = (bounds.X + bounds.Width) - mouseXmm;
+                        novaAltura = (bounds.Y + bounds.Height) - mouseYmm;
                         break;
+
                     case "TopRight":
-                        bounds.Y = (int)((boundsPixels.Y + deltaY) / escala);
-                        bounds.Width = (int)((boundsPixels.Width + deltaX) / escala);
-                        bounds.Height = (int)((boundsPixels.Height - deltaY) / escala);
+                        // Move o canto superior direito
+                        novoY = mouseYmm;
+                        novaLargura = mouseXmm - bounds.X;
+                        novaAltura = (bounds.Y + bounds.Height) - mouseYmm;
                         break;
+
                     case "BottomLeft":
-                        bounds.X = (int)((boundsPixels.X + deltaX) / escala);
-                        bounds.Width = (int)((boundsPixels.Width - deltaX) / escala);
-                        bounds.Height = (int)((boundsPixels.Height + deltaY) / escala);
+                        // Move o canto inferior esquerdo
+                        novoX = mouseXmm;
+                        novaLargura = (bounds.X + bounds.Width) - mouseXmm;
+                        novaAltura = mouseYmm - bounds.Y;
                         break;
+
                     case "BottomRight":
-                        bounds.Width = (int)((boundsPixels.Width + deltaX) / escala);
-                        bounds.Height = (int)((boundsPixels.Height + deltaY) / escala);
+                        // Move o canto inferior direito
+                        novaLargura = mouseXmm - bounds.X;
+                        novaAltura = mouseYmm - bounds.Y;
                         break;
+
                     case "Top":
-                        bounds.Y = (int)((boundsPixels.Y + deltaY) / escala);
-                        bounds.Height = (int)((boundsPixels.Height - deltaY) / escala);
+                        // Move só o topo
+                        novoY = mouseYmm;
+                        novaAltura = (bounds.Y + bounds.Height) - mouseYmm;
                         break;
+
                     case "Bottom":
-                        bounds.Height = (int)((boundsPixels.Height + deltaY) / escala);
+                        // Move só a base
+                        novaAltura = mouseYmm - bounds.Y;
                         break;
+
                     case "Left":
-                        bounds.X = (int)((boundsPixels.X + deltaX) / escala);
-                        bounds.Width = (int)((boundsPixels.Width - deltaX) / escala);
+                        // Move só a esquerda
+                        novoX = mouseXmm;
+                        novaLargura = (bounds.X + bounds.Width) - mouseXmm;
                         break;
+
                     case "Right":
-                        bounds.Width = (int)((boundsPixels.Width + deltaX) / escala);
+                        // Move só a direita
+                        novaLargura = mouseXmm - bounds.X;
                         break;
                 }
 
                 // Tamanho mínimo
-                if (bounds.Width < 5) bounds.Width = 5;
-                if (bounds.Height < 3) bounds.Height = 3;
+                if (novaLargura < 5)
+                {
+                    if (handleRedimensionamento.Contains("Left"))
+                    {
+                        novoX = (bounds.X + bounds.Width) - 5;
+                    }
+                    novaLargura = 5;
+                }
 
-                // Limitar aos limites do canvas
-                if (bounds.X < 0) bounds.X = 0;
-                if (bounds.Y < 0) bounds.Y = 0;
-                if (bounds.X + bounds.Width > template.Largura) bounds.Width = (int)template.Largura - bounds.X;
-                if (bounds.Y + bounds.Height > template.Altura) bounds.Height = (int)template.Altura - bounds.Y;
+                if (novaAltura < 3)
+                {
+                    if (handleRedimensionamento.Contains("Top"))
+                    {
+                        novoY = (bounds.Y + bounds.Height) - 3;
+                    }
+                    novaAltura = 3;
+                }
 
-                elementoSelecionado.Bounds = bounds;
+                // Limites do canvas
+                if (novoX < 0)
+                {
+                    novaLargura += novoX;
+                    novoX = 0;
+                }
+                if (novoY < 0)
+                {
+                    novaAltura += novoY;
+                    novoY = 0;
+                }
+                if (novoX + novaLargura > template.Largura)
+                {
+                    novaLargura = (int)template.Largura - novoX;
+                }
+                if (novoY + novaAltura > template.Altura)
+                {
+                    novaAltura = (int)template.Altura - novoY;
+                }
+
+                // Aplicar novos valores
+                elementoSelecionado.Bounds = new Rectangle(novoX, novoY, novaLargura, novaAltura);
                 panelCanvas.Invalidate();
             }
             else
