@@ -163,6 +163,56 @@ namespace SistemaEtiquetas
             }
         }
 
+        // Método para o Designer (com letra maiúscula)
+        private void BtnConfigEtiqueta_Click(object sender, EventArgs e)
+        {
+            btnConfigEtiqueta_Click(sender, e);
+        }
+
+        private void btnConfigEtiqueta_Click(object sender, EventArgs e)
+        {
+            // Cria configuração atual baseada no template
+            var configAtual = new ConfiguracaoEtiqueta
+            {
+                NomeEtiqueta = "Etiqueta Atual",
+                ImpressoraPadrao = "BTP-L42(D)",
+                PapelPadrao = "Tamanho do papel-SoftcomGondBar",
+                LarguraEtiqueta = template.Largura,
+                AlturaEtiqueta = template.Altura,
+                NumColunas = 1,
+                NumLinhas = 1,
+                EspacamentoColunas = 0,
+                EspacamentoLinhas = 0,
+                MargemSuperior = 0,
+                MargemInferior = 0,
+                MargemEsquerda = 0,
+                MargemDireita = 0
+            };
+
+            // Abre o formulário de configuração
+            var formConfig = new FormConfigEtiqueta(configAtual);
+            if (formConfig.ShowDialog() == DialogResult.OK)
+            {
+                var config = formConfig.Configuracao;
+
+                // Atualiza o template com as novas dimensões
+                template.Largura = config.LarguraEtiqueta;
+                template.Altura = config.AlturaEtiqueta;
+
+                // Atualiza os controles numéricos
+                numLargura.Value = (decimal)config.LarguraEtiqueta;
+                numAltura.Value = (decimal)config.AlturaEtiqueta;
+
+                // Atualiza o canvas
+                AtualizarTamanhoCanvas();
+
+                MessageBox.Show($"✅ Configuração de etiqueta aplicada com sucesso!\n\n" +
+                    $"📏 Dimensões: {config.LarguraEtiqueta} x {config.AlturaEtiqueta} mm\n" +
+                    $"📐 Layout: {config.NumColunas} coluna(s) x {config.NumLinhas} linha(s)\n" +
+                    $"🖨️ Impressora: {config.ImpressoraPadrao}",
+                    "Configuração Aplicada", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
         private void AdicionarElemento(TipoElemento tipo)
         {
             var elemento = new ElementoEtiqueta

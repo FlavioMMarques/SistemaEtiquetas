@@ -50,6 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes.cs" />
+    <Compile Include="Formconfigetiqueta.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Formconfigetiqueta.Designer.cs">
+      <DependentUpon>Formconfigetiqueta.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormDesign.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -77,6 +83,9 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TemplateManager.cs" />
+    <EmbeddedResource Include="Formconfigetiqueta.resx">
+      <DependentUpon>Formconfigetiqueta.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormPrincipal.resx">
       <DependentUpon>FormPrincipal.cs</DependentUpon>
     </EmbeddedResource>

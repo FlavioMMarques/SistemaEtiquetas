@@ -160,8 +160,33 @@
                 AutoSize = true
             };
 
+            // Botão Configurar Etiqueta
+            System.Windows.Forms.Button btnConfigEtiqueta = new System.Windows.Forms.Button
+            {
+                Text = "⚙️ Configurar Papel",
+                Location = new System.Drawing.Point(10, 125),
+                Size = new System.Drawing.Size(220, 30),
+                BackColor = System.Drawing.Color.FromArgb(155, 89, 182),
+                ForeColor = System.Drawing.Color.White,
+                FlatStyle = System.Windows.Forms.FlatStyle.Flat,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+                Font = new System.Drawing.Font("Segoe UI", 9, System.Drawing.FontStyle.Bold)
+            };
+            btnConfigEtiqueta.FlatAppearance.BorderSize = 0;
+            btnConfigEtiqueta.Click += BtnConfigEtiqueta_Click;
+
+            // Separador 3
+            System.Windows.Forms.Label lblSeparador3 = new System.Windows.Forms.Label
+            {
+                Text = "━━━━━━━━━━━━━━━━━━━━━━",
+                ForeColor = System.Drawing.Color.FromArgb(149, 165, 166),
+                Location = new System.Drawing.Point(10, 160),
+                AutoSize = true
+            };
+
+
             // Botões de elementos
-            System.Windows.Forms.Button btnTexto = CriarBotaoFerramenta("Adicionar Texto", 130);
+            System.Windows.Forms.Button btnTexto = CriarBotaoFerramenta("Adicionar Texto", 175);
             btnTexto.Click += btnTexto_Click;
 
             System.Windows.Forms.Button btnCampoNome = CriarBotaoFerramenta("Campo: Nome", 170);
@@ -179,6 +204,7 @@
             System.Windows.Forms.Button btnImagem = CriarBotaoFerramenta("Adicionar Imagem", 330);
             btnImagem.Click += btnImagem_Click;
 
+            // 
             // 
             // lblTamanho
             // 
@@ -311,6 +337,7 @@
             // Adicionar controles ao panel
             this.panelFerramentas.Controls.AddRange(new System.Windows.Forms.Control[] {
                 this.lblFerramentas, lblSeparador1, btnSalvarTemplate, btnCarregarTemplate, lblSeparador2,
+                btnConfigEtiqueta, lblSeparador3,
                 btnTexto, btnCampoNome, btnCampoCodigo, btnCampoPreco, btnCodigoBarras, btnImagem,
                 this.lblTamanho, this.lblLargura, this.numLargura, this.lblAltura, this.numAltura,
                 this.groupPresets, this.lblElementos, this.lstElementos, this.btnRemover
