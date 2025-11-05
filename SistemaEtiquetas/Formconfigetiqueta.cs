@@ -107,8 +107,8 @@ namespace SistemaEtiquetas
             }
 
             // Adiciona impressora padrão do exemplo
-            if (!cmbImpressora.Items.Contains("BTP-L42(D)"))
-                cmbImpressora.Items.Add("BTP-L42(D)");
+            //if (!cmbImpressora.Items.Contains("BTP-L42(D)"))
+               // cmbImpressora.Items.Add("BTP-L42(D)");
         }
 
         private void CarregarTiposPapel()

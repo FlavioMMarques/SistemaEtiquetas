@@ -22,6 +22,9 @@ namespace SistemaEtiquetas
         {
             InitializeComponent();
 
+            // ✅ Correção: chamada segura após InitializeComponent()
+            CriarBotoesDinamicos();
+
             this.template = new TemplateEtiqueta
             {
                 Largura = templateAtual.Largura,
@@ -163,7 +166,6 @@ namespace SistemaEtiquetas
             }
         }
 
-        // Método para o Designer (com letra maiúscula)
         private void BtnConfigEtiqueta_Click(object sender, EventArgs e)
         {
             btnConfigEtiqueta_Click(sender, e);
@@ -171,7 +173,6 @@ namespace SistemaEtiquetas
 
         private void btnConfigEtiqueta_Click(object sender, EventArgs e)
         {
-            // Cria configuração atual baseada no template
             var configAtual = new ConfiguracaoEtiqueta
             {
                 NomeEtiqueta = "Etiqueta Atual",
@@ -189,21 +190,17 @@ namespace SistemaEtiquetas
                 MargemDireita = 0
             };
 
-            // Abre o formulário de configuração
             var formConfig = new FormConfigEtiqueta(configAtual);
             if (formConfig.ShowDialog() == DialogResult.OK)
             {
                 var config = formConfig.Configuracao;
 
-                // Atualiza o template com as novas dimensões
                 template.Largura = config.LarguraEtiqueta;
                 template.Altura = config.AlturaEtiqueta;
 
-                // Atualiza os controles numéricos
                 numLargura.Value = (decimal)config.LarguraEtiqueta;
                 numAltura.Value = (decimal)config.AlturaEtiqueta;
 
-                // Atualiza o canvas
                 AtualizarTamanhoCanvas();
 
                 MessageBox.Show($"✅ Configuração de etiqueta aplicada com sucesso!\n\n" +
