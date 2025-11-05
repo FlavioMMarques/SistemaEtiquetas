@@ -29,16 +29,20 @@ namespace SistemaEtiquetas
                 Elementos = new List<ElementoEtiqueta>(templateAtual.Elementos.Select(e => ClonarElemento(e)))
             };
 
+            ConfigurarEventos();
             CarregarConfiguracoes();
             AtualizarListaElementos();
+        }
 
-            // Configurar eventos do canvas
+        private void ConfigurarEventos()
+        {
+            // Eventos do canvas
             panelCanvas.Paint += PanelCanvas_Paint;
             panelCanvas.MouseDown += PanelCanvas_MouseDown;
             panelCanvas.MouseMove += PanelCanvas_MouseMove;
             panelCanvas.MouseUp += PanelCanvas_MouseUp;
 
-            // Salvar automaticamente ao fechar com OK
+            // Evento de fechamento
             this.FormClosing += FormDesigner_FormClosing;
         }
 
@@ -46,7 +50,6 @@ namespace SistemaEtiquetas
         {
             if (this.DialogResult == DialogResult.OK)
             {
-                // Salvar como último template usado
                 TemplateManager.SalvarUltimoTemplate(template);
             }
         }
@@ -97,6 +100,67 @@ namespace SistemaEtiquetas
         private void btnImagem_Click(object sender, EventArgs e)
         {
             AdicionarImagem();
+        }
+
+        // Método para o Designer (com letra maiúscula)
+        private void BtnSalvarTemplate_Click(object sender, EventArgs e)
+        {
+            btnSalvarTemplate_Click(sender, e);
+        }
+
+        // Método para o Designer (com letra maiúscula)
+        private void BtnCarregarTemplate_Click(object sender, EventArgs e)
+        {
+            btnCarregarTemplate_Click(sender, e);
+        }
+
+        private void btnSalvarTemplate_Click(object sender, EventArgs e)
+        {
+            if (template.Elementos.Count == 0)
+            {
+                MessageBox.Show("Adicione pelo menos um elemento antes de salvar!", "Atenção",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var formNome = new FormNomeTemplate();
+            if (formNome.ShowDialog() == DialogResult.OK)
+            {
+                string nomeTemplate = formNome.NomeTemplate;
+
+                if (TemplateManager.SalvarTemplate(template, nomeTemplate))
+                {
+                    MessageBox.Show($"✅ Template '{nomeTemplate}' salvo com sucesso!\n\n📁 Local: {TemplateManager.ObterPastaTemplates()}",
+                        "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+
+        private void btnCarregarTemplate_Click(object sender, EventArgs e)
+        {
+            var formLista = new FormListaTemplates();
+            if (formLista.ShowDialog() == DialogResult.OK)
+            {
+                string nomeTemplate = formLista.TemplateSelecionado;
+
+                var templateCarregado = TemplateManager.CarregarTemplate(nomeTemplate);
+                if (templateCarregado != null)
+                {
+                    template.Largura = templateCarregado.Largura;
+                    template.Altura = templateCarregado.Altura;
+                    template.Elementos = templateCarregado.Elementos;
+
+                    numLargura.Value = (decimal)template.Largura;
+                    numAltura.Value = (decimal)template.Altura;
+                    AtualizarTamanhoCanvas();
+                    AtualizarListaElementos();
+                    elementoSelecionado = null;
+                    panelCanvas.Invalidate();
+
+                    MessageBox.Show($"✅ Template '{nomeTemplate}' carregado com sucesso!",
+                        "Sucesso", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
         }
 
         private void AdicionarElemento(TipoElemento tipo)
@@ -363,6 +427,7 @@ namespace SistemaEtiquetas
             }
         }
 
+        // Métodos de desenho e mouse
         private void PanelCanvas_Paint(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
@@ -783,6 +848,11 @@ namespace SistemaEtiquetas
             );
         }
 
+        public TemplateEtiqueta ObterTemplate()
+        {
+            return template;
+        }
+
         private ElementoEtiqueta ClonarElemento(ElementoEtiqueta original)
         {
             return new ElementoEtiqueta
@@ -796,11 +866,6 @@ namespace SistemaEtiquetas
                 Negrito = original.Negrito,
                 Italico = original.Italico
             };
-        }
-
-        public TemplateEtiqueta ObterTemplate()
-        {
-            return template;
         }
     }
 }
